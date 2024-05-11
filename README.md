@@ -55,3 +55,9 @@
 > docker compose up 
 
 можно поднять Postgres контейнер и Pgadmin на порту 5050.
+
+### Миграции
+Для миграций используется инструмент [yoyo-migrations](https://github.com/marcosschroh/yoyo-database-migrations).
+
+Для того чтобы применить миграции необходимо написать
+> yoyo apply
