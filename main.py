@@ -1,27 +1,25 @@
-import telebot
-import os
-from dotenv import load_dotenv
-from database.db import Database
-from models.models import User
-load_dotenv()
-Token = os.getenv('TOKEN')
-bot_name = os.getenv('BOT_NAME')
-db_url = os.getenv('DATABASE_URL')
-bot = telebot.TeleBot(Token, parse_mode=None)
+import asyncio
+import logging
+from config import Config
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters.command import Command
 
-@bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
-	print("Received message:", message.text)
-	bot.send_message(message.chat.id, "Привет, я бот-диетолог " + bot_name + ". Я помогу тебе сбросить вес.")
+# Хэндлер на команду /start
+async def cmd_start(message: types.Message):
+    await message.answer("Hello!")
 
-@bot.message_handler(func=lambda m: True)
-def echo(message):
-	bot.reply_to(message, message.text)
+async def cmd_dice(message: types.Message):
+	await message.answer_dice()
+     
+async def main():
+    
+    config = Config()
+    bot = Bot(token=config['token'])
+    dp = Dispatcher()
+    logging.basicConfig(level=logging.DEBUG)# TODO: Вынести в конфиг
+    dp.message.register(Command("start"), cmd_start)
+    dp.message.register(Command("dice"), cmd_dice)
+    await dp.start_polling(bot)
 
-print("Bot started...")
-#bot.infinity_polling()
-
-user = User(1, "test", 180, 80, 20, 1.2)
-db = Database(db_url)
-db.create_user(user)
-print("User created")
+if __name__ == "__main__":
+    asyncio.run(main())

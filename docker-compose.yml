@@ -11,7 +11,6 @@ services:
     container_name: diet-bot-postgres
     networks:
       - diet-bot-network
-
     volumes:
       - ./volumes/database:/var/lib/postgresql/data
     environment:
