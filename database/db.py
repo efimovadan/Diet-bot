@@ -1,9 +1,24 @@
 import psycopg2
 
+
+# Используется для доступа к базе данных
+# Реализует паттерн Singleton
 class Database:
-    def __init__(self, db_url):
-        self.connect = psycopg2.connect(dsn=db_url)
-        self.cursor = self.connect.cursor()
+    _instance = None
+    _db_url = None  
+
+    @classmethod
+    def initialize(cls, db_url):
+        if cls._instance is None:
+            cls._db_url = db_url
+            cls._instance = cls()
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Database, cls).__new__(cls)
+            cls._instance.connect = psycopg2.connect(dsn=cls._db_url)
+            cls._instance.cursor = cls._instance.connect.cursor()
+        return cls._instance
 
     def __del__(self):
         self.cursor.close()
