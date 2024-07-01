@@ -1,6 +1,8 @@
 from aiogram import types
+from message_text import message_dict
 
 async def cmd_start(message: types.Message): 
-    await message.answer("Приветствую, меня зовут Питательный Помощник! Я помогу вам с вопросами о питании и здоровом образе жизни.")
+    await message.answer(message_dict['welcome'])
+
 
 

@@ -1,6 +1,5 @@
 import psycopg2
 
-
 # Используется для доступа к базе данных
 # Реализует паттерн Singleton
 class Database:
