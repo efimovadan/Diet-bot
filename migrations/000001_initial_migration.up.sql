@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
 	age INT,
 	physical_activity_level INT -- уровень физической активности 0...2
 		CHECK (physical_activity_level >= 0 AND physical_activity_level <= 2),
-	goal INT, -- цель 0...2 (похудение, поддержание, набор)
-		CHECK (goal >= 0 AND goal <= 2)
+	goal INT -- цель 0...2 (похудение, поддержание, набор)
+		CHECK (goal >= 0 AND goal <= 2),
+    gender BOOL -- пол(женщина - false, мужчина - true)
+        
 );

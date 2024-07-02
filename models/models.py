@@ -1,6 +1,6 @@
 
 class User:
-    def __init__(self, telegram_id, username, height, weight, age, physical_activity_level, goal):
+    def __init__(self, telegram_id, username, height, weight, age, physical_activity_level, goal, gender):
         self.telegram_id = telegram_id
         self.username = username
         self.height = height
@@ -8,6 +8,7 @@ class User:
         self.age = age
         self.physical_activity_level = physical_activity_level
         self.goal = goal
+        self.gender = gender
         
 
     def __str__(self):
