@@ -1,8 +1,8 @@
 from aiogram import Dispatcher
 from aiogram.filters.command import Command
 
-from handlers.start import cmd_start
+from handlers.start import register_start_handlers
 
 def register_handlers(dp: Dispatcher):
-    dp.message.register(cmd_start, Command("start"))
+    register_start_handlers(dp)
     
