@@ -60,7 +60,9 @@
 можно поднять Postgres контейнер и Pgadmin на порту 5050.
 
 ### Миграции
-Для миграций используется инструмент [yoyo-migrations](https://github.com/marcosschroh/yoyo-database-migrations).
+Для миграций используется инструмент [migrate](https://github.com/golang-migrate/migrate/).
 
 Для того чтобы применить миграции необходимо написать
-> yoyo apply
+> migrate -database 'postgres://postgres:postgres@localhost:5432/diet-bot?sslmode=disable'  -path migrations up
+
+

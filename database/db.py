@@ -1,31 +1,34 @@
-import psycopg2
+import asyncpg
 
 # Используется для доступа к базе данных
 # Реализует паттерн Singleton
 class Database:
     _instance = None
-    _db_url = None  
-
-    @classmethod
-    def initialize(cls, db_url):
-        if cls._instance is None:
-            cls._db_url = db_url
-            cls._instance = cls()
+    _db_conn_dict = None
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(Database, cls).__new__(cls)
-            cls._instance.connect = psycopg2.connect(dsn=cls._db_url)
-            cls._instance.cursor = cls._instance.connect.cursor()
         return cls._instance
 
-    def __del__(self):
-        self.cursor.close()
-        self.connect.close()
+    @classmethod
+    async def initialize(cls, db_conn_dict):
+        if cls._db_conn_dict is None:
+            cls._db_conn_dict = db_conn_dict
+            await cls.connect()
 
-    def create_user(self, user):
-        self.cursor.execute(
-            "INSERT INTO users (telegram_id, username, height, weight, age, physical_activity_level) VALUES (%s, %s, %s, %s, %s, %s)",
-            (user.telegram_id, user.username, user.height, user.weight, user.age, user.physical_activity_level)
+    @classmethod
+    async def connect(cls):
+        cls.connection = await asyncpg.connect(
+            user=cls._db_conn_dict['user'],
+            password=cls._db_conn_dict['password'],
+            database=cls._db_conn_dict['database'],
+            host=cls._db_conn_dict['host']
         )
-        self.connect.commit()
+
+    async def execute_query(self, query, params=None):
+        if not hasattr(self, 'connection'):
+            raise Exception("Connection to database is not established.")
+        async with self.connection.transaction():
+            await self.connection.execute(query, *params)
+        
