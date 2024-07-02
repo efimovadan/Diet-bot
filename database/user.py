@@ -21,4 +21,19 @@ class UserRepository:
         query = "SELECT EXISTS(SELECT 1 FROM users WHERE telegram_id = $1)"
         params = (telegram_id,)
         return  await self._db.execute_query("SELECT EXISTS(SELECT 1 FROM users WHERE telegram_id = $1)", params=(telegram_id,), return_type='fetchval')
-        
+    
+    async def get_user(self, telegram_id: int) -> User:
+        query = "SELECT telegram_id, username, height, weight, age, physical_activity_level, goal, gender FROM users WHERE telegram_id = $1"
+        user_data = await self._db.execute_query(query, params=(telegram_id,), return_type='fetchrow')
+        if user_data:
+            return User(
+                telegram_id=user_data['telegram_id'],
+                username=user_data['username'],
+                height=user_data['height'],
+                weight=user_data['weight'],
+                age=user_data['age'],
+                physical_activity_level=user_data['physical_activity_level'],
+                goal=user_data['goal'],
+                gender=user_data['gender']
+            )
+        return None

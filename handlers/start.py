@@ -177,7 +177,6 @@ async def process_goal(callback_query: types.CallbackQuery, state: FSMContext):
 
 
 async def process_gender(callback_query: types.CallbackQuery, state: FSMContext):
-    print("HERE, YAAS")
     try:
         gender_data = callback_query.data.split(":")
         if len(gender_data) != 2:
@@ -189,11 +188,10 @@ async def process_gender(callback_query: types.CallbackQuery, state: FSMContext)
         gender = True if gender == "male" else False
         await state.update_data(gender=gender)
 
-        
         await callback_query.message.answer(message_dict['finish'])
 
         data = await state.get_data()
-        print("DATA:", data)
+        
         user = User(
             telegram_id=callback_query.from_user.id,
             username=callback_query.from_user.username,
@@ -208,7 +206,15 @@ async def process_gender(callback_query: types.CallbackQuery, state: FSMContext)
         user_repository = UserRepository()
         await user_repository.create(user)
 
-        callback_query.answer("Регистрация завершена!")
+        
+        nutrients = calculate_nutrients(user)
+        await callback_query.message.answer(
+            f"Ваша норма КБЖУ на день:\n\t\tКалории: {nutrients['calories']}, "
+            f"\n\t\tБелки: {nutrients['proteins']} г,\n\t\tЖиры: {nutrients['fats']} г, "
+            f"\n\t\tУглеводы: {nutrients['carbs']} г.\n\n"
+        )
+
+        callback_query.answer()
         await state.clear() 
 
     except Exception as e:
