@@ -16,7 +16,8 @@ class Registration(StatesGroup):
 def register_start_handlers(dp: Dispatcher):
     dp.message.register(cmd_start, Command(commands="start"))
     dp.message.register(process_age, Registration.age)
-    # dp.message.register(process_height, state=Registration.height)
+    dp.message.register(process_height, Registration.height)
+    
     # dp.message.register(process_weight, state=Registration.weight)
     # dp.message.register(process_activity_level, state=Registration.activity_level)
     # dp.message.register(process_goal, state=Registration.goal)
@@ -33,16 +34,37 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
 async def process_age(message: types.Message, state: FSMContext):
     try:
-        age = int(message.text) 
+        age = int(message.text)
+        if age < 0:
+            await message.answer(message_dict['negative_age'])
+            return
         if age < 20:
             await message.answer(message_dict['young_age'])
         elif age > 50:
             await message.answer(message_dict['old_age'])
         else:
             await message.answer(message_dict['normal_age'])
-        async with state.proxy() as data:
-            data['age'] = age
-        await Registration.next()
+        await state.update_data(age=age)
+        await state.set_state(Registration.height)
+
     except ValueError:
         await message.answer(message_dict['wrong_age'])
 
+
+async def process_height(message: types.Message, state: FSMContext):
+    try:
+        height = int(message.text)
+        if height < 0:
+            await message.answer(message_dict['negative_height'])
+            return
+        if height < 150:
+            await message.answer(message_dict['short_height'])
+        elif height > 200:
+            await message.answer(message_dict['tall_height'])
+        else:
+            await message.answer(message_dict['normal_height'])
+        
+        await state.update_data(height=height)
+        await state.set_state(Registration.weight)
+    except ValueError:
+        await message.answer(message_dict['wrong_height'])
