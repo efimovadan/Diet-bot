@@ -5,6 +5,7 @@ import asyncpg
 class Database:
     _instance = None
     _db_conn_dict = None
+    _pool = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -19,7 +20,7 @@ class Database:
 
     @classmethod
     async def connect(cls):
-        cls.connection = await asyncpg.connect(
+        cls._pool = await asyncpg.create_pool(
             user=cls._db_conn_dict['user'],
             password=cls._db_conn_dict['password'],
             database=cls._db_conn_dict['database'],
@@ -27,15 +28,16 @@ class Database:
         )
 
     async def execute_query(self, query, params=None, return_type='execute'):
-        if not hasattr(self, 'connection'):
-            raise Exception("Connection to database is not established.")
-        async with self.connection.transaction():
-            if return_type == 'fetch':
-                return await self.connection.fetch(query, *params)
-            elif return_type == 'fetchval':
-                return await self.connection.fetchval(query, *params)
-            elif return_type == 'fetchrow':
-                return await self.connection.fetchrow(query, *params)
-            else:
-                await self.connection.execute(query, *params)
-                return True  
+        if self._pool is None:
+            raise Exception("Connection pool is not established.")
+        async with self._pool.acquire() as connection:
+            async with connection.transaction():
+                if return_type == 'fetch':
+                    return await connection.fetch(query, *params)
+                elif return_type == 'fetchval':
+                    return await connection.fetchval(query, *params)
+                elif return_type == 'fetchrow':
+                    return await connection.fetchrow(query, *params)
+                else:
+                    await connection.execute(query, *params)
+                    return True
