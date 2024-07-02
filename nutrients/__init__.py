@@ -1,1 +1,1 @@
-from .nutrients import calculate_nutrients
+from .nutrients import calculate_nutrients, calculate_daily_diet

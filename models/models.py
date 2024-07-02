@@ -14,3 +14,10 @@ class User:
     def __str__(self):
         return f"User {self.username} with telegram_id {self.telegram_id}"
     
+class Product:
+    def __init__(self, name: str, proteins: float, fats: float, carbs: float, calories: int):
+        self.name = name
+        self.proteins = proteins
+        self.fats = fats
+        self.carbs = carbs
+        self.calories = calories

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
 	telegram_id INT PRIMARY KEY,
 	username VARCHAR(255),
 	height INT, -- рост в см

@@ -27,7 +27,7 @@ class Database:
             host=cls._db_conn_dict['host']
         )
 
-    async def execute_query(self, query, params=None, return_type='execute'):
+    async def execute_query(self, query, params=[], return_type='execute'):
         if self._pool is None:
             raise Exception("Connection pool is not established.")
         async with self._pool.acquire() as connection:
