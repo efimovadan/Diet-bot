@@ -7,14 +7,15 @@ from aiogram import Dispatcher
 from aiogram.filters import Command
 from aiogram.utils.formatting import Text
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
+from nutrients import calculate_nutrients
 from models import User
 class Registration(StatesGroup):
     age = State()  
     height = State()  
     weight = State()  
     activity_level = State()  
-    goal = State()  
+    goal = State()
+    gender = State()
 
 
 def register_start_handlers(dp: Dispatcher):
@@ -25,7 +26,9 @@ def register_start_handlers(dp: Dispatcher):
     dp.message.register(process_weight, Registration.weight)
     
     dp.callback_query.register(activity_level, Registration.activity_level, lambda c: c.data.startswith("activity_level"))
-    # dp.message.register(process_goal, state=Registration.goal)
+    dp.callback_query.register(process_goal, Registration.goal, lambda c: c.data.startswith("goal"))
+    dp.callback_query.register(process_gender, Registration.gender, lambda c: c.data.startswith("gender"))
+    
 
 async def cmd_start(message: types.Message, state: FSMContext): 
     user_repository = UserRepository()
@@ -142,7 +145,7 @@ async def activity_level(callback_query: types.CallbackQuery, state: FSMContext)
             callback_data="goal:2")
         )
 
-        await callback_query.message.answer("Выберите вашу цель", reply_markup=builder.as_markup())
+        await callback_query.message.answer(message_dict['goal'], reply_markup=builder.as_markup())
 
         await state.set_state(Registration.goal)
 
@@ -150,27 +153,64 @@ async def activity_level(callback_query: types.CallbackQuery, state: FSMContext)
         print(e)
         await callback_query.answer(message_dict['error'])
 
-async def process_goal(message: types.Message, state: FSMContext):
+async def process_goal(callback_query: types.CallbackQuery, state: FSMContext):
     try:
-        goal = int(message.text)
-        if goal not in [0, 1, 2]:
+        goal = callback_query.data.split(":")
+        if len(goal) != 2:
+            raise ValueError("Incorrect callback_data format")
+        
+        goal_data = int(goal[1])
+        if goal_data not in [0, 1, 2]:
             raise ValueError("Invalid goal value")
         
-        await state.update_data(goal=goal)
-        await state.set_state(Registration.finish)
-        data = await state.get_data()
-        user = User(
-            telegram_id=message.from_user.id,
-            username=message.from_user.username,
-            age=data['age'],
-            height=data['height'],
-            weight=data['weight'],
-            physical_activity_level=data['activity_level'],
-            goal=data['goal']
-        )
-        user_repository = UserRepository()
-        await user_repository.create(user)
-        await message.answer(message_dict['finish'])
+        await state.update_data(goal=goal_data)
+
+        builder = InlineKeyboardBuilder()
+        builder.add(types.InlineKeyboardButton(text="Мужской", callback_data="gender:male"))
+        builder.add(types.InlineKeyboardButton(text="Женский", callback_data="gender:female"))
+        await callback_query.message.answer(message_dict['gender'], reply_markup=builder.as_markup())
+        await state.set_state(Registration.gender)
+        
     except Exception as e:
         print(e)
-        await message.answer(message_dict['error'])
+        await callback_query.answer(message_dict['error'])
+
+
+async def process_gender(callback_query: types.CallbackQuery, state: FSMContext):
+    print("HERE, YAAS")
+    try:
+        gender_data = callback_query.data.split(":")
+        if len(gender_data) != 2:
+            raise ValueError("Incorrect callback_data format")
+
+        gender = gender_data[1]
+        if gender not in ["male", "female"]:
+            raise ValueError("Invalid gender value")
+        gender = True if gender == "male" else False
+        await state.update_data(gender=gender)
+
+        
+        await callback_query.message.answer(message_dict['finish'])
+
+        data = await state.get_data()
+        print("DATA:", data)
+        user = User(
+            telegram_id=callback_query.from_user.id,
+            username=callback_query.from_user.username,
+            height=data['height'],
+            weight=data['weight'],
+            age=data['age'],
+            physical_activity_level=data['activity_level'],
+            goal=data['goal'],
+            gender=gender,
+        )
+
+        user_repository = UserRepository()
+        await user_repository.create(user)
+
+        callback_query.answer("Регистрация завершена!")
+        await state.clear() 
+
+    except Exception as e:
+        print(e)
+        await callback_query.answer(message_dict['error'])

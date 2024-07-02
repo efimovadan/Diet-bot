@@ -16,7 +16,7 @@ async def main():
     
     # TODO: вынести инициализацию синглтонов
     await Database.initialize(config['db'])
-    UserRepository.initialize()
+    
     logging.basicConfig(level=logging.DEBUG)# TODO: Вынести в конфиг
     register_handlers(dp)
     await dp.start_polling(bot)

@@ -1,6 +1,6 @@
 import asyncpg
 
-# Используется для доступа к базе данных
+# Удобная прослойка для работы с БД.
 # Реализует паттерн Singleton
 class Database:
     _instance = None
@@ -26,9 +26,16 @@ class Database:
             host=cls._db_conn_dict['host']
         )
 
-    async def execute_query(self, query, params=None):
+    async def execute_query(self, query, params=None, return_type='execute'):
         if not hasattr(self, 'connection'):
             raise Exception("Connection to database is not established.")
         async with self.connection.transaction():
-            await self.connection.execute(query, *params)
-        
+            if return_type == 'fetch':
+                return await self.connection.fetch(query, *params)
+            elif return_type == 'fetchval':
+                return await self.connection.fetchval(query, *params)
+            elif return_type == 'fetchrow':
+                return await self.connection.fetchrow(query, *params)
+            else:
+                await self.connection.execute(query, *params)
+                return True  
