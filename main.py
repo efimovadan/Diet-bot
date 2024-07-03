@@ -16,7 +16,7 @@ async def main():
 
     await Database.initialize(config['db'])
     
-    logging.basicConfig(level=logging.DEBUG)# TODO: Вынести в конфиг
+    logging.basicConfig(level=logging.DEBUG)
     register_handlers(dp)
     await dp.start_polling(bot)
 
