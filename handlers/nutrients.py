@@ -12,6 +12,7 @@ def register_nutrients_handlers(dp: Dispatcher):
     dp.message.register(cmd_product, Command(commands="product"))
     dp.message.register(cmd_diet, Command(commands="diet"))
     dp.message.register(cmd_diet_list, Command(commands="diet_list"))
+    dp.message.register(cmd_calculate_nutrients, Command(commands="calculate_nutrients"))
 
 
 async def cmd_daily(message: types.Message):
@@ -92,4 +93,30 @@ async def cmd_diet_list(message: types.Message):
     else:
         response = "Не удалось составить диету."
     
+    await message.answer(response)
+
+import re
+async def cmd_calculate_nutrients(message: types.Message):
+    text = message.text
+    pattern = r"(\w+)\s+(\d+)\s*гр"
+    items = re.findall(pattern, text, re.IGNORECASE)
+
+    product_repo = ProductRepository()
+    response_lines = []
+
+    for product_name, amount_str in items:
+        amount = float(amount_str)
+        product = await product_repo.get_products_by_names([product_name.lower()])
+        
+        if len(product) == 1:
+            product = product[0]
+            calories = product.calories * amount / 100
+            proteins = product.proteins * amount / 100
+            fats = product.fats * amount / 100
+            carbs = product.carbs * amount / 100
+            response_lines.append(f"{product_name} ({amount} гр):\n\tКалории: {calories} ккал,\n\tБелки: {proteins} г,\n\tЖиры: {fats} г,\n\tУглеводы: {carbs} г\n\n")
+        else:
+            response_lines.append(f"Продукт {product_name} не найден.")
+
+    response = "\n".join(response_lines)
     await message.answer(response)
